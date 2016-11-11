@@ -97,6 +97,7 @@ sorted(rdd.cartesian(rdd).collect())
 ### Creating a Sample Google Cloud SQL database
 - The Cloud SQL dashboard can be accessed from https://console.cloud.google.com/sql/
 - The sample MySQL database used in this project is the `classicmodels` database from the [MySQLTutorial website][mysqlsam]. This SQL file has been uploaded to this repository as [`mysqlsampledatabase.sql`][classicmodels]. A schema for this database is as follows:
+
 ![Schema](http://www.mysqltutorial.org/wp-content/uploads/2009/12/MySQL-Sample-Database-Schema.png)
 
 
