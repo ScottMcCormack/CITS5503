@@ -21,7 +21,7 @@ The following steps need to be taken in setting up the project:
 - Take note of the `project_id` that is automatically created when you create an account
 - Install the [Cloud SDK][cloudsdk] which provisions the use of `gcloud` and `gsutil` on the command line locally. Once installed, run `gcloud init` to setup the account priviledges on your computer. 
 
-### Google Cloud Storage
+### Creating a Google Cloud Storage Bucket
 - A bucket can be created by following the prompts at https://console.cloud.google.com/storage
 - Although not critical, it is suggested that the bucket should be created with the following options specified while using the trial period:
     - **Bucket Name**: `<bucket-name>`
@@ -32,13 +32,13 @@ The following steps need to be taken in setting up the project:
 gsutil mb -c multi_regional -l asia -p <project_id> gs://<bucket-name>
 ```
 
-### Google Cloud Dataproc
+### Creating a Google Cloud Dataproc instance
 - The Cloud DataProc dashboard can be accessed from https://console.cloud.google.com/dataproc/
 - However, rather than than using the browser we will instead use the `gcloud dataproc clusters` command to manage the Dataproc instances
 - An initialization script will also be used based on the [`jupyter.sh`][jupyter] script from the [`GoogleCloudPlatform/dataproc-initialization-actions`][dpinit] GitHub repository. Basic features of this script are as follows:
     - Clone the [`GoogleCloudPlatform/dataproc-initialization-actions`][dpinit] repository on to each master and worker cluster node.
     - Download miniconda using the [`bootstrap-conda.sh`][scrconda] script
-    - Install additional pip packages: (plotly, cufflinks, numpy) and conda packages: (pandas, scikit-learn) using the [`install-conda-env.sh`][scrcondaenv] script. This is an additional feature added to the original script. If this step was not provisioned 
+    - Install additional pip packages: (plotly, cufflinks, numpy) and conda packages: (pandas, scikit-learn) using the [`install-conda-env.sh`][scrcondaenv] script. This is an additional feature added to the original script. Adding these additional packages allows use of these additional packages in Spark RDD transformations. Had we not installed these packages at this step, we would have had to SSH into both the master and worker VM instances and manually install these packages.
     - Install jupyter notebook on the master node (only) and provision it for use with the pySpark kernel
 - In order to use the initialization script stored in this repository [`configuration1.sh`][scrconfig] when we initiate the Dataproc cluster, we need to upload it into the Google Storage bucket we created in the previous section. We should then be able to access it from the link `gs://<some-unique-name>/configuration1.sh`
 - Once this script has been loaded into our Google Storage Bucket, we can provision the dataproc cluster by running the following command:
@@ -54,6 +54,30 @@ gcloud dataproc clusters create <cluster-name> \
     - `n1-standard-2` is a [`machine-type`][mtypes] that consists of a standard 2 CPU machine type with 2 virtual CPU's and 7.5 GB of memory
     - One master machine will be created with the name `<cluster-name>-m`
     - Two worker machines will be created with the names `<cluster-name>-w-0` and `<cluster-name>-w-1`
+- Also note that we did not specify which Zone we wanted in this command. However it is likely that an instance will be provisioned at a location close to the Zone we specified for the staging bucket. In my case, a `n1-standard-2` machine was available at the zone `asia-east-1` and was hence created at this location.
+    
+ ### Loading a Jupyter Notebook
+- In order to load a Jupyter notebook on your local machine that is connected to this newly created dataproc instance, we require the use of two terminal windows. These:
+    - Create an SSH tunnel from the cluster's master node to your localhost machine; and
+    - Load a browser that connects to the SSH tunnel using the SOCKS protocol
+- The following command creates a SSH tunnel from port 10000 on your local machine. Also note, that the zone may change depending on the location in which the dataproc instance was created.
+```
+gcloud compute ssh --zone=asia-east1-a \
+--ssh-flag="-D" --ssh-flag="10000" --ssh-flag="-N" "<cluster-name>"
+```
+- The following command will load a browser that connects to this SSH tunnel:
+```
+/usr/bin/chromium-browser "http://<cluster-name>-m:8123" \
+--proxy-server="socks5://localhost:10000" \
+--host-resolver-rules="MAP * 0.0.0.0 , EXCLUDE localhost" \ 
+--user-data-dir=/tmp/
+```
+- Note that in the previous command, I used a chromium browser from my Linux machine. The following are some other commands you can use if loading Chrome on your own OS:
+    - Linux: `/usr/bin/google-chrome`
+    - Windows: `C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`
+    - Mac OS X: `/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome`
+    
+
 
 [gcp]: https://cloud.google.com
 [constorage]: https://console.cloud.google.com/storage
