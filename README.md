@@ -19,7 +19,7 @@ These instances will be primarily driven by use of the command line commands `gc
 The following steps need to be taken in setting up the project:
 - Register a trial account at https://cloud.google.com. This gives $300 US of free credit to use over 60 days. A credit card is required but is not automatically charged once the trial period is finished or if you exceed the limit.
 - Take note of the `project_id` that is automatically created when you create an account
-- Install the [Cloud SDK][cloudsdk] which provisions the use of `gcloud` and `gsutil` on the command line locally. Once installed, run `gcloud init` to setup the account priviledges on your computer. 
+- Install the [Cloud SDK][cloudsdk] which provisions the use of `gcloud` and `gsutil` on the command line locally. Once installed, run `gcloud init` to setup the account priviledges on your computer. When prompted make sure you set your desired region as `asia-east-1`
 
 ### Creating a Google Cloud Storage Bucket
 - A bucket can be created by following the prompts at https://console.cloud.google.com/storage
@@ -54,13 +54,13 @@ gcloud dataproc clusters create <cluster-name> \
     - `n1-standard-2` is a [`machine-type`][mtypes] that consists of a standard 2 CPU machine type with 2 virtual CPU's and 7.5 GB of memory
     - One master machine will be created with the name `<cluster-name>-m`
     - Two worker machines will be created with the names `<cluster-name>-w-0` and `<cluster-name>-w-1`
-- Also note that we did not specify which Zone we wanted in this command. However it is likely that an instance will be provisioned at a location close to the Zone we specified for the staging bucket. In my case, a `n1-standard-2` machine was available at the zone `asia-east-1` and was hence created at this location.
+- Also note that we did not specify which zone we wanted in this command. As a `n1-standard-2` machine was available at the zone  `asia-east-1` the dataproc instance was created at this location.
     
  ### Loading a Jupyter Notebook
 - In order to load a Jupyter notebook on your local machine that is connected to this newly created dataproc instance, we require the use of two terminal windows. These:
     - Create an SSH tunnel from the cluster's master node to your localhost machine; and
     - Load a browser that connects to the SSH tunnel using the SOCKS protocol
-- The following command creates a SSH tunnel from port 10000 on your local machine. Also note, that the zone may change depending on the location in which the dataproc instance was created.
+- The following command creates a SSH tunnel from port 10000 on your local machine. 
 ```
 gcloud compute ssh --zone=asia-east1-a \
 --ssh-flag="-D" --ssh-flag="10000" --ssh-flag="-N" "<cluster-name>"
@@ -74,7 +74,7 @@ gcloud compute ssh --zone=asia-east1-a \
 ```
 - Note that in the previous command, I used a chromium browser from my Linux machine. The following are some other commands you can use if loading Chrome on your own OS:
     - Linux: `/usr/bin/google-chrome`
-    - Windows: `C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`
+    - Windows: `& 'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe'`
     - Mac OS X: `/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome`
     
 ### Using the Jupyter Notebook
@@ -100,6 +100,12 @@ sorted(rdd.cartesian(rdd).collect())
 
 ![Schema](http://www.mysqltutorial.org/wp-content/uploads/2009/12/MySQL-Sample-Database-Schema.png)
 
+- A Google Cloud SQL instance can be created using the following [`gcloud sql instances create`][sqlcreate] command.
+```
+gcloud sql instances create <instance-name> \
+--tier=db-n1-standard-1 \
+--activation-policy=ALWAYS
+```
 
 [gcp]: https://cloud.google.com
 [constorage]: https://console.cloud.google.com/storage
@@ -125,3 +131,5 @@ sorted(rdd.cartesian(rdd).collect())
 [rdat]: https://storage.googleapis.com/st-21875529/ratings.dat
 [mysqlsam]: http://www.mysqltutorial.org/mysql-sample-database.aspx
 [classicmodels]: https://github.com/ScottMcCormack/CITS5503/blob/master/mysqlsampledatabase.sql
+[gcezone]: https://cloud.google.com/compute/docs/regions-zones/regions-zones
+[sqlcreate]: https://cloud.google.com/sdk/gcloud/reference/sql/instances/create
