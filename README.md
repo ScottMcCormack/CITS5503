@@ -94,6 +94,12 @@ sorted(rdd.cartesian(rdd).collect())
     - [`PortfolioPredictor.ipynb`][ipynbPP]: Adopted from the Google Cloud example on the [`Monte Carlo Method`][exMCM]
     - [`MoviePredictor.ipynb`][exMP]: Adopted from the Machine Learning Lab from the [`spark-mooc/mooc-setup`][smms] repository. Uses the Alternating Least Squares (ALS) module from the `pyspark.mllib.recommendation` module. Note that the [`movies.dat`][mdat] and [`ratings.dat`][rdat] datasets need to be manually inserted into a local storage bucket.
     
+### Creating a Sample Google Cloud SQL database
+- The Cloud SQL dashboard can be accessed from https://console.cloud.google.com/sql/
+- The sample MySQL database used in this project is the `classicmodels` database from the [MySQLTutorial website][mysqlsam]. This SQL file has been uploaded to this repository as [`mysqlsampledatabase.sql`][classicmodels]. A schema for this database is as follows:
+![Schema](http://www.mysqltutorial.org/wp-content/uploads/2009/12/MySQL-Sample-Database-Schema.png)
+
+
 [gcp]: https://cloud.google.com
 [constorage]: https://console.cloud.google.com/storage
 [condataproc]: https://console.cloud.google.com/dataproc/
@@ -116,3 +122,5 @@ sorted(rdd.cartesian(rdd).collect())
 [smms]: https://github.com/spark-mooc/mooc-setup
 [mdat]: https://storage.googleapis.com/st-21875529/movies.dat
 [rdat]: https://storage.googleapis.com/st-21875529/ratings.dat
+[mysqlsam]: http://www.mysqltutorial.org/mysql-sample-database.aspx
+[classicmodels]: https://github.com/ScottMcCormack/CITS5503/blob/master/mysqlsampledatabase.sql
