@@ -28,9 +28,9 @@ The following steps need to be taken in setting up the project:
     - [**Storage Class**][stclass]: Multi-Regional
     - [**Multi-Regional Location**][mrlocation]: Asia
 - The bucket can be created by issuing the following [`gsutil mb`][gsutilmb] command:
-```
-gsutil mb -c multi_regional -l asia -p <project_id> gs://<bucket-name>
-```
+    ```
+    gsutil mb -c multi_regional -l asia -p <project_id> gs://<bucket-name>
+    ```
 
 ### Creating a Google Cloud Dataproc instance
 - The Cloud DataProc dashboard can be accessed from https://console.cloud.google.com/dataproc/
@@ -42,14 +42,14 @@ gsutil mb -c multi_regional -l asia -p <project_id> gs://<bucket-name>
     - Install jupyter notebook on the master node (only) and provision it for use with the pySpark kernel
 - In order to use the initialization script stored in this repository [`configuration1.sh`][scrconfig] when we initiate the Dataproc cluster, we need to upload it into the Google Storage bucket we created in the previous section. We should then be able to access it from the link `gs://<some-unique-name>/configuration1.sh`
 - Once this script has been loaded into our Google Storage Bucket, we can provision the dataproc cluster by running the following command:
-```
-gcloud dataproc clusters create <cluster-name> \ 
---project <project_id> \
---bucket <bucket-name> \
---initialization-actions gs://<some-unique-name>/configuration1.sh \
---master-machine-type n1-standard-2 \
---worker-machine-type n1-standard-2
-```
+    ```
+    gcloud dataproc clusters create <cluster-name> \ 
+    --project <project_id> \
+    --bucket <bucket-name> \
+    --initialization-actions gs://<some-unique-name>/configuration1.sh \
+    --master-machine-type n1-standard-2 \
+    --worker-machine-type n1-standard-2
+    ```
 - In this command: 
     - `n1-standard-2` is a [`machine-type`][mtypes] that consists of a standard 2 CPU machine type with 2 virtual CPU's and 7.5 GB of memory
     - One master machine will be created with the name `<cluster-name>-m`
@@ -61,23 +61,38 @@ gcloud dataproc clusters create <cluster-name> \
     - Create an SSH tunnel from the cluster's master node to your localhost machine; and
     - Load a browser that connects to the SSH tunnel using the SOCKS protocol
 - The following command creates a SSH tunnel from port 10000 on your local machine. Also note, that the zone may change depending on the location in which the dataproc instance was created.
-```
-gcloud compute ssh --zone=asia-east1-a \
---ssh-flag="-D" --ssh-flag="10000" --ssh-flag="-N" "<cluster-name>"
-```
+    ```
+    gcloud compute ssh --zone=asia-east1-a \
+    --ssh-flag="-D" --ssh-flag="10000" --ssh-flag="-N" "<cluster-name>"
+    ```
 - The following command will load a browser that connects to this SSH tunnel:
-```
-/usr/bin/chromium-browser "http://<cluster-name>-m:8123" \
---proxy-server="socks5://localhost:10000" \
---host-resolver-rules="MAP * 0.0.0.0 , EXCLUDE localhost" \ 
---user-data-dir=/tmp/
-```
+    ```
+    /usr/bin/chromium-browser "http://<cluster-name>-m:8123" \
+    --proxy-server="socks5://localhost:10000" \
+    --host-resolver-rules="MAP * 0.0.0.0 , EXCLUDE localhost" \ 
+    --user-data-dir=/tmp/
+    ```
 - Note that in the previous command, I used a chromium browser from my Linux machine. The following are some other commands you can use if loading Chrome on your own OS:
     - Linux: `/usr/bin/google-chrome`
     - Windows: `C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`
     - Mac OS X: `/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome`
     
-
+### Using the Jupyter Notebook
+- A browser should have been loaded with the address `http://<cluster-name>-m:8123/tree`
+- In this browser we can:
+    - Upload files using the Upload button from the File tab. Files may include:
+        - IPython Notebooks `.ipynb` for running Python or pySpark programs
+        - Supporting files for these notebooks
+    - Create new files, folders or terminal processes using the New button from the File tab
+        - Try creating a terminal process and run the following lines of code to test the pySpark functionality. You can terminate this process by using the command `Ctrl+D` twice (Once to exit pySpark, once more to end the terminal process)
+        ```
+        pyspark
+        rdd = sc.parallelize([1, 2])
+        sorted(rdd.cartesian(rdd).collect())
+        ```
+- Two example pySpark Notebooks are provided in this repository under [`examples`][flexamples]. Upload these notebooks to the running dataproc instance to test its functionality. These are described as follows:
+    - [`PortfolioPredictor.ipynb`][ipynbPP]: Adopted from the Google Cloud example on the [`Monte Carlo Method`][exMCM]
+    - [`MoviePredictor.ipynb`][exMP]: Adopted from the Machine Learning Lab from the [`spark-mooc/mooc-setup`] repository. Uses the Alternating Least Squares (ALS) module from the `pyspark.mllib.recommendation` module. Note that the [`movies.dat`][mdat] and [`ratings.dat`][rdat] datasets need to be manually inserted into a local storage bucket.
 
 [gcp]: https://cloud.google.com
 [constorage]: https://console.cloud.google.com/storage
@@ -94,3 +109,10 @@ gcloud compute ssh --zone=asia-east1-a \
 [scrcondaenv]: https://github.com/GoogleCloudPlatform/dataproc-initialization-actions/blob/master/conda/install-conda-env.sh
 [scrconfig]: https://github.com/ScottMcCormack/CITS5503/blob/master/configuration1.sh
 [mtypes]: https://cloud.google.com/compute/docs/machine-types
+[flexamples]: https://github.com/ScottMcCormack/CITS5503/tree/master/examples
+[ipynbPP]: https://github.com/ScottMcCormack/CITS5503/blob/master/examples/PortfolioPredictor.ipynb
+[exMCM]: https://cloud.google.com/solutions/monte-carlo-methods-with-hadoop-spark
+[exMP]: https://github.com/ScottMcCormack/CITS5503/blob/master/examples/MoviePredictor.ipynb
+[smms]: https://github.com/spark-mooc/mooc-setup
+[mdat]: https://storage.googleapis.com/st-21875529/movies.dat
+[rdat]: https://storage.googleapis.com/st-21875529/ratings.dat
